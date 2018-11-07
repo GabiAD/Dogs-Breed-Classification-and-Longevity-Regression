@@ -10,4 +10,4 @@ log_hyperparameters_cls.csv: table with hyperparameters and metrics for each tes
 
 log_hyperparameters_reg.csv: table with hyperparameters and metrics for each tested regression model 
 
-DM_Dogs_complet_v3.py: the file used to test models for a set o hyperparameters 
+DM_Dogs_saver.py: the file used to test models for a set o hyperparameters 
