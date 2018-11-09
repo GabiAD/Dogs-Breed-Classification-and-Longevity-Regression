@@ -1,13 +1,11 @@
 # Dogs-Breed-Classification-and-Longevity-Regression
 
-This repo contains:
+DM_Dogs_run_models.ipynb: jupyter notebook pentru vizualizarea celor mai buni hiperparametrii
 
-DM_Dogs_run_models.ipynb: a notebook to visualize models 
+dataset.csv: setul de date
 
-dataset.csv: the file containing the dataset 
+log_hyperparameters_cls.csv: tabel care contine hiperparametrii si performantele obtinute pentru modelele de clasificare
 
-log_hyperparameters_cls.csv: table with hyperparameters and metrics for each tested classification model 
+log_hyperparameters_reg.csv: tabel care contine hiperparametrii si performantele obtinute pentru modelele de regresie
 
-log_hyperparameters_reg.csv: table with hyperparameters and metrics for each tested regression model 
-
-DM_Dogs_saver.py: the file used to test models for a set o hyperparameters 
+DM_Dogs_saver.py: script-ul folosit pentru testarea diferitor valori ale hiperparametrilor
