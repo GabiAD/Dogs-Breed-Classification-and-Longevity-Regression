@@ -9,6 +9,7 @@ from sklearn import preprocessing
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsRegressor
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -60,6 +61,11 @@ ridge_solver_vals = ['auto'] # , 'svd', 'cholesky', 'lsqr', 'sparse_cg', 'sag', 
 el_net_alpha_vals = [1.0]
 el_net_l1_ratio_vals = [0.5]
 
+# KNeighborsRegressor
+knr_n_neighbors_vals = [5, 10, 15]
+knr_weights_vals = ['uniform', 'distance']
+knr_p_vals = [1, 2]
+
 hyperparameters_cls_vals = [keep_incomplete_data_vals,
 normalize_data_vals,
 standardize_data_vals,
@@ -85,7 +91,10 @@ lasso_alpha_vals,
 ridge_alpha_vals,
 ridge_solver_vals,
 el_net_alpha_vals,
-el_net_l1_ratio_vals]
+el_net_l1_ratio_vals,
+knr_n_neighbors_vals,
+knr_weights_vals,
+knr_p_vals]
 
 hyperparameters_combinations_cls = list(itertools.product(*hyperparameters_cls_vals))
 hyperparameters_combinations_reg = list(itertools.product(*hyperparameters_reg_vals))
@@ -325,6 +334,7 @@ def run_grid():
         lasso_mse = []
         ridge_mse = []
         elastic_net_mse = []
+        knr_mse = []
 
         for train_index, val_index in kf.split(X_train):
             X_fold_train, X_fold_val = X_train[train_index], X_train[val_index]
@@ -342,22 +352,27 @@ def run_grid():
             ridge_model.fit(X_fold_train, y_fold_train)
             elastic_net_model = make_pipeline(PolynomialFeatures(degree=polynomial_degree), ElasticNet(fit_intercept=reg_fit_intercept, alpha=el_net_alpha, l1_ratio=el_net_l1_ratio))
             elastic_net_model.fit(X_fold_train, y_fold_train)
+            knr_model = make_pipeline(PolynomialFeatures(degree=polynomial_degree), KNeighborsRegressor(n_neighbors=knr_n_neighbors, weights=knr_weights, p=knr_p))
+            knr_model.fit(X_fold_train, y_fold_train)
 
             if normalize_data:
                 linear_regression_mse.append(np.mean((linear_regression_model.predict(X_fold_val)*longevity_norm - y_fold_val*longevity_norm) ** 2))
                 lasso_mse.append(np.mean((lasso_model.predict(X_fold_val)*longevity_norm - y_fold_val*longevity_norm) ** 2))
                 ridge_mse.append(np.mean((ridge_model.predict(X_fold_val)*longevity_norm - y_fold_val*longevity_norm) ** 2))
                 elastic_net_mse.append(np.mean((elastic_net_model.predict(X_fold_val)*longevity_norm - y_fold_val*longevity_norm) ** 2))
+                knr_mse.append(np.mean((knr_model.predict(X_fold_val)*longevity_norm - y_fold_val*longevity_norm) ** 2))
             else:
                 linear_regression_mse.append(np.mean((linear_regression_model.predict(X_fold_val)*longevity_std+longevity_mean - y_fold_val*longevity_std+longevity_mean) ** 2))
                 ridge_mse.append(np.mean((ridge_model.predict(X_fold_val)*longevity_std+longevity_mean - y_fold_val*longevity_std+longevity_mean) ** 2))
                 lasso_mse.append(np.mean((lasso_model.predict(X_fold_val)*longevity_std+longevity_mean - y_fold_val*longevity_std+longevity_mean) ** 2))
                 elastic_net_mse.append(np.mean((elastic_net_model.predict(X_fold_val)*longevity_std+longevity_mean - y_fold_val*longevity_std+longevity_mean) ** 2))
+                knr_mse.append(np.mean((knr_model.predict(X_fold_val)*longevity_std+longevity_mean - y_fold_val*longevity_std-longevity_mean) ** 2))
 
         linear_regression_real_scale_val = np.mean(linear_regression_mse)
         lasso_real_scale_val = np.mean(lasso_mse)
         ridge_real_scale_val = np.mean(ridge_mse)
         elastic_net_real_scale_val = np.mean(elastic_net_mse)
+        knr_real_scale_val = np.mean(knr_mse)
 
     if classification_step:
         log_name = 'log_hyperparameters_cls.csv'
@@ -374,10 +389,7 @@ def run_grid():
                                  'logistic_solver',
                                  'logistic_multiclass',
                                  'random_forest_n_estimators',
-                                 'random_forest_criterion',
-                                 'knn_n_neighbours',
-                                 'knn_algorithm',
-                                 'knn_p']
+                                 'random_forest_criterion']
 
     hyperparameters_reg_names = ['keep_incomplete_data',
                                  'normalize_data',
@@ -389,7 +401,10 @@ def run_grid():
                                  'ridge_alpha',
                                  'ridge_solver',
                                  'el_net_alpha',
-                                 'el_net_l1_ratio']
+                                 'el_net_l1_ratio',
+                                 'knr_n_neighbors',
+                                 'knr_weights',
+                                 'knr_p']
 
     results_cls_names = ['Logistic_Acuracy',
                          'KNN_Acuracy',
@@ -404,7 +419,8 @@ def run_grid():
     results_reg_names = ['linear_regression_mse',
                          'lasso_mse',
                          'ridge_mse',
-                         'elastic_net_mse']
+                         'elastic_net_mse',
+                         'knr_mse']
 
     if classification_step:
         names_list = hyperparameters_cls_names[:]
@@ -454,10 +470,14 @@ def run_grid():
                                         ridge_solver,
                                         el_net_alpha,
                                         el_net_l1_ratio,
+                                        knr_n_neighbors,
+                                        knr_weights,
+                                        knr_p,
                                         linear_regression_real_scale_val,
                                         lasso_real_scale_val,
                                         ridge_real_scale_val,
-                                        elastic_net_real_scale_val], index=log.columns)
+                                        elastic_net_real_scale_val,
+                                        knr_real_scale_val], index=log.columns)
 
     if classification_step:
         log = log.append(new_log_cls_row, ignore_index=True)
@@ -470,33 +490,33 @@ def run_grid():
     log.to_csv(log_name, columns=log.columns, index_label='index')
 
 
-current_step = 0
-classification_step = True
-for combination_step in hyperparameters_combinations_cls:
-    (keep_incomplete_data,
-    normalize_data,
-    standardize_data,
-    full_one_hot,
-    polynomial_degree,
-    logistic_penalty,
-    logistic_C,
-    logistic_solver,
-    logistic_multiclass,
-    random_forest_n_estimators,
-    random_forest_criterion,
-    knn_n_neighbours,
-    knn_algorithm,
-    knn_p) = combination_step
-
-    current_step = current_step + 1
-    print(current_step, "/", len(hyperparameters_combinations_cls))
-
-    if polynomial_degree > 5:
-        continue
-    if current_step % 20 == 0:
-        gc.collect()
-
-    run_grid()
+# current_step = 0
+# classification_step = True
+# for combination_step in hyperparameters_combinations_cls:
+#     (keep_incomplete_data,
+#     normalize_data,
+#     standardize_data,
+#     full_one_hot,
+#     polynomial_degree,
+#     logistic_penalty,
+#     logistic_C,
+#     logistic_solver,
+#     logistic_multiclass,
+#     random_forest_n_estimators,
+#     random_forest_criterion,
+#     knn_n_neighbours,
+#     knn_algorithm,
+#     knn_p) = combination_step
+#
+#     current_step = current_step + 1
+#     print(current_step, "/", len(hyperparameters_combinations_cls))
+#
+#     if polynomial_degree > 5:
+#         continue
+#     if current_step % 20 == 0:
+#         gc.collect()
+#
+#     run_grid()
 
 
 current_step = 0
@@ -512,7 +532,10 @@ for combination_step in hyperparameters_combinations_reg:
     ridge_alpha,
     ridge_solver,
     el_net_alpha,
-    el_net_l1_ratio) = combination_step
+    el_net_l1_ratio,
+    knr_n_neighbors,
+    knr_weights,
+    knr_p) = combination_step
 
     current_step = current_step + 1
     print(current_step, "/", len(hyperparameters_combinations_reg))
