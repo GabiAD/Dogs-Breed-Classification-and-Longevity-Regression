@@ -490,36 +490,36 @@ def run_grid():
     log.to_csv(log_name, columns=log.columns, index_label='index')
 
 
-current_step = 0
-classification_step = True
-for combination_step in hyperparameters_combinations_cls:
-    (keep_incomplete_data,
-    normalize_data,
-    standardize_data,
-    full_one_hot,
-    polynomial_degree,
-    logistic_penalty,
-    logistic_C,
-    logistic_solver,
-    logistic_multiclass,
-    random_forest_n_estimators,
-    random_forest_criterion,
-    knn_n_neighbours,
-    knn_algorithm,
-    knn_p) = combination_step
+# current_step = 0
+# classification_step = True
+# for combination_step in hyperparameters_combinations_cls:
+#     (keep_incomplete_data,
+#     normalize_data,
+#     standardize_data,
+#     full_one_hot,
+#     polynomial_degree,
+#     logistic_penalty,
+#     logistic_C,
+#     logistic_solver,
+#     logistic_multiclass,
+#     random_forest_n_estimators,
+#     random_forest_criterion,
+#     knn_n_neighbours,
+#     knn_algorithm,
+#     knn_p) = combination_step
+#
+#     current_step = current_step + 1
+#     print(current_step, "/", len(hyperparameters_combinations_cls))
+#
+#     if polynomial_degree > 5:
+#         continue
+#     if current_step % 20 == 0:
+#         gc.collect()
+#
+#     run_grid()
 
-    current_step = current_step + 1
-    print(current_step, "/", len(hyperparameters_combinations_cls))
 
-    if polynomial_degree > 5:
-        continue
-    if current_step % 20 == 0:
-        gc.collect()
-
-    run_grid()
-
-
-current_step = 0
+current_step = 375
 classification_step = False
 for combination_step in hyperparameters_combinations_reg:
     (keep_incomplete_data,
@@ -540,7 +540,7 @@ for combination_step in hyperparameters_combinations_reg:
     current_step = current_step + 1
     print(current_step, "/", len(hyperparameters_combinations_reg))
 
-    if full_one_hot and polynomial_degree > 5:
+    if full_one_hot and polynomial_degree > 5 or polynomial_degree > 7:
         continue
     if current_step % 20 == 0:
         gc.collect()
